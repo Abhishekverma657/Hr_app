@@ -1,0 +1,43 @@
+# Virtual environment folders
+venv/
+env/
+ENV/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.so
+
+# VSCode settings (optional)
+.vscode/
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.*
+
+# Mac & Linux junk files
+.DS_Store
+Thumbs.db
+
+# Uploaded files / temporary
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.webp
+*.zip
+
+# Render build cache (optional)
+.build/
+.cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Local settings or database (optional)
+*.sqlite3
