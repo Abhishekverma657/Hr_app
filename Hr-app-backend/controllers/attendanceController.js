@@ -7,6 +7,7 @@ import FormData from 'form-data';
 import fs from 'fs';
 import path from 'path';
 import cloudinary from '../config/cloudinary.js';
+import { compareFacesWithFacePP } from '../utils/compareFaceWithFacePP.js';
 
 
 // Employee - Check In
@@ -153,86 +154,367 @@ const uploadToCloudinary = async (buffer) => {
 
  
 
+// export const faceCheckInOut = async (req, res) => {
+//   try {
+//     if (!req.file) return res.status(400).json({ message: 'No image provided' });
+
+//     // Step 1: Upload live image to Cloudinary
+//     const livePhotoUrl = await uploadToCloudinary(req.file.buffer);
+
+//     // Step 2: Get all users
+//     const users = await User.find({ role: 'employee' });
+
+//     let matchedUser = null;
+//     let confidenceScore = 0;
+
+//     // Step 3: Loop over all user photos and match
+//     for (const user of users) {
+//       if (!user.photo) continue;
+
+//       const form = new FormData();
+//       form.append('cloud_image_url', livePhotoUrl);
+//       form.append('stored_image_url', user.photo);
+
+//       try {
+//         const verifyRes = await axios.post('http://localhost:4500/verify-face', form, {
+//           headers: form.getHeaders(),
+//         });
+
+//         const { matched, confidence } = verifyRes.data;
+//         console.log('Confidence:', confidence);
+
+//         if (matched && confidence >= 60) {
+//           matchedUser = user;
+//           confidenceScore = confidence;
+//           break;
+//         }
+//       } catch (err) {
+//         console.error(err);
+//         // Silent fail if face not matched
+//         continue;
+//       }
+//     }
+
+//     if (!matchedUser) {
+//       return res.status(401).json({ message: '❌ Face not recognized with any employee.' });
+//     }
+
+//     // Step 4: Attendance logic
+//     const userId = matchedUser._id;
+//     const today = new Date().toISOString().split('T')[0];
+//     const existing = await Attendance.findOne({
+//       user: userId,
+//       date: { $gte: new Date(today), $lt: new Date(`${today}T23:59:59`) },
+//     });
+
+//     if (!existing) {
+//       const attendance = new Attendance({
+//         user: userId,
+//         checkIn: new Date(),
+//       });
+//       await attendance.save();
+//       return res.status(201).json({
+//         message: `✅ ${matchedUser.name} Checked In`,
+//         confidence: confidenceScore,
+//         attendance,
+//       });
+//     }
+
+//     if (!existing.checkOut) {
+//       existing.checkOut = new Date();
+//       await existing.save();
+//       return res.status(200).json({
+//         message: `✅ ${matchedUser.name} Checked Out`,
+//         confidence: confidenceScore,
+//         attendance: existing,
+//       });
+//     }
+
+//     return res.status(400).json({ message: '✅ Already Checked In & Out today.' });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: '❌ Internal Error', error: err.message });
+//   }
+// };
+
+
+ 
+ 
+ 
+
+// export const faceCheckInOut = async (req, res) => {
+//   try {
+//     if (!req.file) return res.status(400).json({ message: 'No image provided' });
+
+//     const livePhotoUrl = await uploadToCloudinary(req.file.buffer);
+//     console.log('Live Photo URL:', livePhotoUrl);
+
+//     const users = await User.find({ role: 'employee' });
+
+//     let matchedUser = null;
+//     let confidenceScore = 0;
+
+//     for (const user of users) {
+//   if (!user.photo) continue;
+//   console.log(`👤 userphoto  ${user.photo}`);
+
+
+//   try {
+//     const { matched, confidence } = await compareFacesWithFacePP(livePhotoUrl, user.photo);
+    
+
+//     console.log(`👤 Checking ${user.name} → Confidence: ${confidence}`);
+
+//     if (matched && confidence >= 60) {
+//       matchedUser = user;
+//       confidenceScore = confidence;
+
+//       // 👇 Extra Detail Print
+//       console.log('✅ Match Found With:');
+//       console.log('Name:', user.name);
+//       console.log('Email:', user.email);
+//       console.log('Confidence:', confidence);
+//       break;
+//     }
+//   } catch (err) {
+//     console.error(`❌ Error comparing with ${user.name}:`, err.message);
+//     continue;
+//   }
+// }
+
+
+//     if (!matchedUser) {
+//       return res.status(401).json({ message: '❌ Face not matched with any employee' });
+//     }
+
+//     const userId = matchedUser._id;
+//     const today = new Date().toISOString().split('T')[0];
+//     const existing = await Attendance.findOne({
+//       user: userId,
+//       date: { $gte: new Date(today), $lt: new Date(`${today}T23:59:59`) },
+//     });
+
+//     if (!existing) {
+//       const attendance = new Attendance({ user: userId, checkIn: new Date() });
+//       await attendance.save();
+//       return res.status(201).json({
+//         message: `✅ ${matchedUser.name} Checked In`,
+//         confidence: confidenceScore,
+//         attendance,
+//       });
+//     }
+
+//     if (!existing.checkOut) {
+//       existing.checkOut = new Date();
+//       await existing.save();
+//       return res.status(200).json({
+//         message: `✅ ${matchedUser.name} Checked Out`,
+//         confidence: confidenceScore,
+//         attendance: existing,
+//       });
+//     }
+
+//     return res.status(400).json({ message: '✅ Already Checked In & Out today.' });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: '❌ Internal Server Error', error: err.message });
+//   }
+// };
+
+// export const faceCheckInOut = async (req, res) => {
+//   try {
+//     if (!req.file) return res.status(400).json({ message: 'No image provided' });
+
+//     const livePhotoUrl = await uploadToCloudinary(req.file.buffer);
+//     console.log('📸 Live Photo URL:', livePhotoUrl);
+
+//     const users = await User.find({ role: 'employee' });
+
+//     let highestMatch = null;
+//     let highestConfidence = 0;
+//     const allMatches = [];
+
+//     for (const user of users) {
+//       if (!user.photo) continue;
+
+//       try {
+//         const { matched, confidence } = await compareFacesWithFacePP(livePhotoUrl, user.photo);
+//         console.log(`👤 ${user.name} → Confidence: ${confidence}`);
+
+//         allMatches.push({
+//           name: user.name,
+//           email: user.email,
+//           confidence,
+//           matched,
+//         });
+
+//         if (matched && confidence > highestConfidence) {
+//           highestConfidence = confidence;
+//           highestMatch = user;
+//         }
+
+//       } catch (err) {
+//         console.error(`❌ Error comparing with ${user.name}:`, err.message);
+//         allMatches.push({
+//           name: user.name,
+//           email: user.email,
+//           error: err.message,
+//         });
+//       }
+//     }
+
+//     if (!highestMatch || highestConfidence < 60) {
+//       return res.status(401).json({
+//         message: '❌ No confident face match found',
+//         allMatches,
+//       });
+//     }
+
+//     // Attendance Logic
+//     const userId = highestMatch._id;
+//     const today = new Date().toISOString().split('T')[0];
+//     const existing = await Attendance.findOne({
+//       user: userId,
+//       date: { $gte: new Date(today), $lt: new Date(`${today}T23:59:59`) },
+//     });
+
+//     if (!existing) {
+//       const attendance = new Attendance({ user: userId, checkIn: new Date() });
+//       await attendance.save();
+//       return res.status(201).json({
+//         message: `✅ ${highestMatch.name} Checked In`,
+//         confidence: highestConfidence,
+//         attendance,
+//         allMatches,
+//       });
+//     }
+
+//     if (!existing.checkOut) {
+//       existing.checkOut = new Date();
+//       await existing.save();
+//       return res.status(200).json({
+//         message: `✅ ${highestMatch.name} Checked Out`,
+//         confidence: highestConfidence,
+//         attendance: existing,
+//         allMatches,
+//       });
+//     }
+
+//     return res.status(400).json({
+//       message: '✅ Already Checked In & Out today.',
+//       allMatches,
+//     });
+
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: '❌ Internal Server Error', error: err.message });
+//   }
+// };
+
 export const faceCheckInOut = async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ message: 'No image provided' });
+    if (!req.file)
+      return res.status(400).json({ message: 'No image provided' });
 
-    // Step 1: Upload live image to Cloudinary
     const livePhotoUrl = await uploadToCloudinary(req.file.buffer);
+    console.log('📸 Live Photo URL:', livePhotoUrl);
 
-    // Step 2: Get all users
     const users = await User.find({ role: 'employee' });
 
-    let matchedUser = null;
-    let confidenceScore = 0;
+    let highestMatch = null;
+    let highestConfidence = 0;
+    const allMatches = [];
 
-    // Step 3: Loop over all user photos and match
     for (const user of users) {
       if (!user.photo) continue;
 
-      const form = new FormData();
-      form.append('cloud_image_url', livePhotoUrl);
-      form.append('stored_image_url', user.photo);
-
       try {
-        const verifyRes = await axios.post('http://localhost:4500/verify-face', form, {
-          headers: form.getHeaders(),
+        const { matched, confidence } = await compareFacesWithFacePP(
+          livePhotoUrl,
+          user.photo
+        );
+
+        console.log(`👤 ${user.name} → Confidence: ${confidence}`);
+
+        allMatches.push({
+          name: user.name,
+          email: user.email,
+          confidence,
+          matched,
         });
 
-        const { matched, confidence } = verifyRes.data;
-        console.log('Confidence:', confidence);
-
-        if (matched && confidence >= 60) {
-          matchedUser = user;
-          confidenceScore = confidence;
-          break;
+        if (matched && confidence >= 85 && confidence > highestConfidence) {
+          highestMatch = user;
+          highestConfidence = confidence;
         }
       } catch (err) {
-        console.error(err);
-        // Silent fail if face not matched
-        continue;
+        console.error(`❌ Error comparing with ${user.name}:`, err.message);
+        allMatches.push({
+          name: user.name,
+          email: user.email,
+          error: err.message,
+        });
       }
     }
 
-    if (!matchedUser) {
-      return res.status(401).json({ message: '❌ Face not recognized with any employee.' });
+    if (!highestMatch) {
+      return res.status(401).json({
+        message: '❌ No confident match found (confidence < 85%)',
+        allMatches,
+      });
     }
 
-    // Step 4: Attendance logic
-    const userId = matchedUser._id;
+    // ✅ Attendance Logic
+    const userId = highestMatch._id;
     const today = new Date().toISOString().split('T')[0];
+    const todayStart = new Date(`${today}T00:00:00`);
+    const todayEnd = new Date(`${today}T23:59:59`);
+
     const existing = await Attendance.findOne({
       user: userId,
-      date: { $gte: new Date(today), $lt: new Date(`${today}T23:59:59`) },
+      date: { $gte: todayStart, $lte: todayEnd },
     });
 
     if (!existing) {
+      // ✅ First time — Check In
       const attendance = new Attendance({
         user: userId,
         checkIn: new Date(),
       });
       await attendance.save();
+
       return res.status(201).json({
-        message: `✅ ${matchedUser.name} Checked In`,
-        confidence: confidenceScore,
+        message: `✅ ${highestMatch.name} Checked In`,
+        confidence: highestConfidence,
         attendance,
+        allMatches,
       });
     }
 
     if (!existing.checkOut) {
+      // ✅ Second time — Check Out
       existing.checkOut = new Date();
       await existing.save();
+
       return res.status(200).json({
-        message: `✅ ${matchedUser.name} Checked Out`,
-        confidence: confidenceScore,
+        message: `✅ ${highestMatch.name} Checked Out`,
+        confidence: highestConfidence,
         attendance: existing,
+        allMatches,
       });
     }
 
-    return res.status(400).json({ message: '✅ Already Checked In & Out today.' });
+    // ❌ Already both check-in and check-out done
+    return res.status(400).json({
+      message: '✅ Already Checked In & Out today.',
+      allMatches,
+    });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: '❌ Internal Error', error: err.message });
+    res.status(500).json({
+      message: '❌ Internal Server Error',
+      error: err.message,
+    });
   }
 };
 
