@@ -9,12 +9,35 @@ export const register = async (req, res) => {
   res.status(201).json({ token: generateToken(user._id, user.role) });
 };
 
+// export const login = async (req, res) => {
+//   const { email, password } = req.body;
+//   const user = await User.findOne({ email });
+//   const isMatch = user && (await bcrypt.compare(password, user.password));
+
+//   if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+
+//   res.json({
+//      token: generateToken(user._id, user.role), role: user.role 
+
+//   });
+// };
 export const login = async (req, res) => {
   const { email, password } = req.body;
+
   const user = await User.findOne({ email });
   const isMatch = user && (await bcrypt.compare(password, user.password));
 
-  if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+  if (!isMatch)
+    return res.status(401).json({ message: 'Invalid credentials' });
 
-  res.json({ token: generateToken(user._id, user.role), role: user.role });
+  const token = generateToken(user._id, user.role);
+
+  // remove password before sending
+  const { password: _, ...userData } = user.toObject();
+
+  res.status(200).json({
+    token,
+    user: userData,
+  });
 };
+
