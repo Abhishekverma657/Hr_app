@@ -7,6 +7,11 @@ export const getEmployees = async (req, res) => {
   const users = await User.find({ role: 'employee' });
   res.json(users);
 };
+// controller
+export const getMyProfile = async (req, res) => {
+  res.json(req.user); // Already fetched in middleware
+};
+
 
 // GET single employee by ID
 export const getEmployee = async (req, res) => {
