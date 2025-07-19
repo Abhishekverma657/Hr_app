@@ -448,8 +448,10 @@ export const faceCheckInOut = async (req, res) => {
           highestConfidence = confidence;
         }
       } catch (err) {
+
         console.error(`❌ Error comparing with ${user.name}:`, err.message);
         allMatches.push({
+          
           name: user.name,
           email: user.email,
           error: err.message,
@@ -459,6 +461,7 @@ export const faceCheckInOut = async (req, res) => {
 
     if (!highestMatch) {
       return res.status(401).json({
+        matched: false,
         message: '❌ No confident match found (confidence < 85%)',
         allMatches,
       });
@@ -484,6 +487,7 @@ export const faceCheckInOut = async (req, res) => {
       await attendance.save();
 
       return res.status(201).json({
+        matched: true,
         message: `✅ ${highestMatch.name} Checked In`,
         confidence: highestConfidence,
         attendance,
@@ -497,6 +501,7 @@ export const faceCheckInOut = async (req, res) => {
       await existing.save();
 
       return res.status(200).json({
+        matched: true,
         message: `✅ ${highestMatch.name} Checked Out`,
         confidence: highestConfidence,
         attendance: existing,
@@ -506,12 +511,14 @@ export const faceCheckInOut = async (req, res) => {
 
     // ❌ Already both check-in and check-out done
     return res.status(400).json({
+      matched: true,
       message: '✅ Already Checked In & Out today.',
       allMatches,
     });
   } catch (err) {
     console.error(err);
     res.status(500).json({
+      matched: false,
       message: '❌ Internal Server Error',
       error: err.message,
     });
