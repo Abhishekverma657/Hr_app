@@ -12,11 +12,12 @@ import isAdmin from '../middlewares/roleCheck.js';
 const router = express.Router();
 
 // Admin
+router.get('/all', protect, getAllNotices);
 router.post('/', protect, isAdmin, createNotice);
-router.get('/all', protect, isAdmin, getAllNotices);
+ 
 router.delete('/:id', protect, isAdmin, deleteNotice);
 
 // Employee
-router.get('/active', protect, getActiveNotices);
+// router.get('/active', protect, getActiveNotices);
 
 export default router;
