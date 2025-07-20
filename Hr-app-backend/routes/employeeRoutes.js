@@ -5,7 +5,9 @@ import {
   addEmployee,
   updateEmployee,
   deleteEmployee,
-  getMyProfile
+  getMyProfile,
+  changePassword
+
 } from '../controllers/employeeController.js';
 
 import protect from '../middlewares/auth.js';
@@ -19,6 +21,8 @@ const router = express.Router();
 
 router.get('/me', protect, getMyProfile);
 router.put('/:id', protect,  updateEmployee);
+router.patch('/change-password', protect, changePassword);
+
 router.get('/',  protect, isAdmin,  getEmployees);
 router.get('/:id', protect, isAdmin,  getEmployee);
 

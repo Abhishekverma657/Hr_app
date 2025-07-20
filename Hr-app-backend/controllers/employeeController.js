@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import cloudinary from '../config/cloudinary.js';
+ 
 
 // GET all employees
 export const getEmployees = async (req, res) => {
@@ -10,7 +11,7 @@ export const getEmployees = async (req, res) => {
 // controller
 export const getMyProfile = async (req, res) => {
    try {
-    const user = await User.findById(req.user.id)
+    const user = await User.findById(req.user.id).select('-password');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     res.json(user);
@@ -19,6 +20,24 @@ export const getMyProfile = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+// controller/employeeController.js
+ ;
+
+export const changePassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  const user = await User.findById(req.user.id);
+  if (!user) return res.status(404).json({ message: 'User not found' });
+
+  const isMatch = await bcrypt.compare(oldPassword, user.password);
+  if (!isMatch) return res.status(400).json({ message: 'Old password is incorrect' });
+
+  user.password = await bcrypt.hash(newPassword, 10);
+  await user.save();
+
+  res.json({ message: "✅ Password updated successfully" });
+};
+
 
 
 // GET single employee by ID
