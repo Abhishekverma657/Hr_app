@@ -15,15 +15,17 @@ import uploadMemory from '../middlewares/uploadMemory.js';
 
 const router = express.Router();
 
-router.use(protect, isAdmin); // Only Admin can access these routes
-
-router.get('/',  getEmployees);
-router.get('/:id', getEmployee);
+        
 
 router.get('/me', protect, getMyProfile);
-// router.post('/', addEmployee);
-router.post('/', isAdmin, uploadMemory.single('photo'), addEmployee);
 router.put('/:id', protect,  updateEmployee);
-router.delete('/:id',isAdmin,  deleteEmployee);
+router.get('/',  protect, isAdmin,  getEmployees);
+router.get('/:id', protect, isAdmin,  getEmployee);
+
+ 
+ 
+router.post('/', protect, isAdmin, uploadMemory.single('photo'), addEmployee);
+ 
+router.delete('/:id', protect,isAdmin,  deleteEmployee);
 
 export default router;

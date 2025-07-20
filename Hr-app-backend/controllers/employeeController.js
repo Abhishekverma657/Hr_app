@@ -9,6 +9,10 @@ export const getEmployees = async (req, res) => {
 };
 // controller
 export const getMyProfile = async (req, res) => {
+ 
+  //   console.log("🔥 Inside getMyProfile");
+  console.log("👤 User:", req.user)
+  if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
   res.json(req.user); // Already fetched in middleware
 };
 

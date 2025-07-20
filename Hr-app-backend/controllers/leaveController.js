@@ -36,7 +36,11 @@ export const allLeaves = async (req, res) => {
 // Admin: update leave status (approve/reject)
 export const updateLeaveStatus = async (req, res) => {
   const { status } = req.body;
-  const leave = await Leave.findById(req.params.id);
+  const leave = await Leave.findByIdAndUpdate(req.params.id ,
+    { status },
+  { new: true }
+
+  ).populate('user', 'name email');
 
   if (!leave) return res.status(404).json({ message: 'Leave not found' });
 
