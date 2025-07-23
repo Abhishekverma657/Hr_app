@@ -510,7 +510,7 @@ export const faceCheckInOut = async (req, res) => {
     }
 
     // ❌ Already both check-in and check-out done
-    return res.status(400).json({
+    return res.status(200).json({
       matched: true,
       message: '✅ Already Checked In & Out today.',
       allMatches,
