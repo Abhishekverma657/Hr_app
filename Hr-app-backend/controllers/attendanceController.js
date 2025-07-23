@@ -443,7 +443,7 @@ export const faceCheckInOut = async (req, res) => {
           matched,
         });
 
-        if (matched && confidence >= 85 && confidence > highestConfidence) {
+        if (matched && confidence >= 82 && confidence > highestConfidence) {
           highestMatch = user;
           highestConfidence = confidence;
         }
